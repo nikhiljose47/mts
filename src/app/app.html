@@ -1,0 +1,17 @@
+<nav class="flex items-center gap-1 px-4 h-12 bg-gray-900 border-b border-gray-800 flex-shrink-0">
+  <span class="text-white font-bold text-sm tracking-wide mr-4">MTS</span>
+  <a
+    routerLink="/market"
+    routerLinkActive="bg-gray-700 text-white"
+    class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 text-sm transition-colors"
+  >Market</a>
+  <a
+    routerLink="/browser"
+    routerLinkActive="bg-gray-700 text-white"
+    class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 text-sm transition-colors"
+  >Browser</a>
+</nav>
+
+<main class="flex-1 min-h-0 overflow-hidden">
+  <router-outlet />
+</main>

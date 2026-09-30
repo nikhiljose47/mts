@@ -1,0 +1,101 @@
+<div class="flex flex-col h-full bg-gray-950 relative">
+  <!-- Toolbar -->
+  <app-toolbar [currentUrl]="currentUrl()" (navigate)="navigate($event)">
+    @if (currentUrl()) {
+      <button
+        (click)="toggleReader()"
+        [class]="readerMode()
+          ? 'px-3 py-1.5 text-xs rounded bg-blue-700 text-white hover:bg-blue-600 transition-colors'
+          : 'px-3 py-1.5 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors'"
+        title="Toggle reader mode"
+      >Reader</button>
+    }
+  </app-toolbar>
+
+  <div class="flex flex-1 min-h-0">
+    <!-- Content pane -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      @if (!currentUrl()) {
+        <!-- Empty state -->
+        <div class="flex-1 flex items-center justify-center">
+          <p class="text-gray-600 text-sm">Enter a URL above to browse</p>
+        </div>
+
+      } @else if (readerMode()) {
+        <!-- Reader mode -->
+        <div class="flex-1 overflow-y-auto bg-gray-950">
+          @if (readerLoading()) {
+            <div class="flex items-center justify-center h-full">
+              <p class="text-gray-500 text-sm">Extracting article…</p>
+            </div>
+
+          } @else if (readerError()) {
+            <div class="flex items-center justify-center h-full px-8">
+              <div class="text-center">
+                <p class="text-red-400 text-sm mb-2">Could not extract article</p>
+                <p class="text-gray-600 text-xs">{{ readerError() }}</p>
+              </div>
+            </div>
+
+          } @else if (readerArticle()) {
+            <article class="mx-auto max-w-2xl px-6 py-10 text-gray-100 select-text">
+              <h1 class="text-2xl font-bold leading-snug mb-2">{{ readerArticle()!.title }}</h1>
+              @if (readerArticle()!.byline) {
+                <p class="text-gray-500 text-sm mb-6">{{ readerArticle()!.byline }}</p>
+              }
+              <div class="prose prose-invert prose-sm max-w-none reader-content"
+                   [innerHTML]="readerArticle()!.content">
+              </div>
+            </article>
+          }
+        </div>
+
+      } @else {
+        <!-- Iframe mode -->
+        @if (iframeUrl()) {
+          <iframe
+            [src]="iframeUrl()"
+            class="flex-1 w-full border-0 bg-white"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            referrerpolicy="no-referrer"
+            title="Browser frame"
+          ></iframe>
+        }
+      }
+    </div>
+
+    <!-- AI Sidebar -->
+    <app-ai-sidebar />
+  </div>
+
+  <!-- Text selection floating menu -->
+  @if (selectionMenu(); as menu) {
+    <!-- Backdrop to dismiss -->
+    <div
+      class="fixed inset-0 z-40"
+      (click)="dismissMenu()"
+      (keydown.escape)="dismissMenu()"
+    ></div>
+
+    <!-- Menu pill -->
+    <div
+      class="fixed z-50 flex gap-1 bg-gray-800 border border-gray-600 rounded-lg shadow-xl px-2 py-1.5"
+      [style.left.px]="menu.x"
+      [style.top.px]="menu.y"
+    >
+      <button
+        (click)="askAI('explain', menu.text)"
+        class="text-xs px-2 py-1 text-gray-200 hover:bg-gray-700 hover:text-white rounded transition-colors"
+      >Explain</button>
+      <button
+        (click)="askAI('summarize', menu.text)"
+        class="text-xs px-2 py-1 text-gray-200 hover:bg-gray-700 hover:text-white rounded transition-colors"
+      >Summarize</button>
+      <button
+        (click)="askAI('ask', menu.text)"
+        class="text-xs px-2 py-1 text-blue-400 hover:bg-gray-700 hover:text-blue-300 rounded transition-colors font-medium"
+      >Ask AI</button>
+    </div>
+  }
+</div>

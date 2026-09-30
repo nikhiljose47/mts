@@ -1,0 +1,91 @@
+<aside class="w-80 flex flex-col bg-gray-900 border-l border-gray-800 flex-shrink-0">
+  <!-- Header -->
+  <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+    <div class="flex items-center gap-2 min-w-0">
+      <h3 class="text-white text-sm font-semibold shrink-0">AI Assistant</h3>
+      @if (contextLabel()) {
+        <span class="text-xs text-blue-400 bg-blue-950/50 px-1.5 py-0.5 rounded truncate">{{ contextLabel() }}</span>
+      }
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-xs text-gray-600">GPT-4o mini</span>
+      @if (hasMessages()) {
+        <button
+          (click)="clearChat()"
+          class="text-xs text-gray-600 hover:text-red-400 transition-colors"
+          title="New chat"
+        >New chat</button>
+      }
+    </div>
+  </div>
+
+  <!-- Prompt shortcuts -->
+  <div class="px-3 pt-3 pb-2 flex flex-wrap gap-1.5 border-b border-gray-800">
+    <button
+      (click)="send(summarizePrompt())"
+      [disabled]="streaming()"
+      class="text-xs px-2 py-1 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >Summarize</button>
+    <button
+      (click)="send(keyPointsPrompt())"
+      [disabled]="streaming()"
+      class="text-xs px-2 py-1 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >Key points</button>
+    <button
+      (click)="send('Explain this in simple terms')"
+      [disabled]="streaming()"
+      class="text-xs px-2 py-1 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >Explain</button>
+  </div>
+
+  <!-- Chat history -->
+  <div #messageList class="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+    @if (!hasMessages()) {
+      <div class="text-center mt-6 space-y-1.5">
+        <p class="text-gray-600 text-xs">Ask anything about the market or current page.</p>
+        <p class="text-gray-700 text-xs">Select text in reader mode for quick AI actions.</p>
+      </div>
+    }
+
+    @for (msg of messages(); track msg.id) {
+      <div [class]="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+        <div
+          [class]="msg.role === 'user'
+            ? 'max-w-[85%] bg-blue-700 text-white text-xs px-3 py-2 rounded-lg rounded-tr-sm'
+            : 'max-w-[95%] bg-gray-800 text-gray-100 text-xs px-3 py-2 rounded-lg rounded-tl-sm'"
+        >
+          <p class="whitespace-pre-wrap leading-relaxed">{{ msg.content }}@if (msg.isStreaming) {<span class="inline-block w-1.5 h-3 bg-gray-400 ml-0.5 animate-pulse align-middle"></span>}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Error banner -->
+  @if (errorMsg()) {
+    <div class="px-3 pb-2">
+      <p class="text-xs text-red-400 bg-red-950/40 border border-red-900 rounded px-2 py-1.5">{{ errorMsg() }}</p>
+    </div>
+  }
+
+  <!-- Input -->
+  <div class="px-3 py-3 border-t border-gray-800">
+    <div class="flex gap-2">
+      <textarea
+        rows="1"
+        placeholder="Ask anything..."
+        [disabled]="streaming()"
+        [value]="inputText()"
+        (input)="inputText.set($any($event.target).value)"
+        (keydown)="onKeydown($event)"
+        class="flex-1 bg-gray-800 text-gray-100 text-sm px-3 py-2 rounded border border-gray-700 placeholder-gray-600 disabled:opacity-40 focus:outline-none focus:border-gray-600 resize-none"
+      ></textarea>
+      <button
+        (click)="send()"
+        [disabled]="streaming() || !inputText().trim()"
+        class="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        @if (streaming()) { ··· } @else { Send }
+      </button>
+    </div>
+  </div>
+</aside>

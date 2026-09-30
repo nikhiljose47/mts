@@ -1,0 +1,105 @@
+<div class="flex h-full">
+
+  <!-- Main market content -->
+  <div class="flex-1 flex flex-col min-w-0 bg-gray-950 overflow-hidden">
+
+    <!-- Top: watchlist table -->
+    <div class="flex-shrink-0 p-4 pb-2">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-white text-base font-semibold">Market Watch</h2>
+        @if (loading()) {
+          <span class="text-xs text-gray-600 animate-pulse">Fetching...</span>
+        } @else {
+          <span class="text-xs text-gray-600">NSE · 5s</span>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="mb-2 px-3 py-1.5 rounded bg-red-950 border border-red-800 text-red-400 text-xs">
+          {{ error() }}
+        </div>
+      }
+
+      <div class="rounded-lg border border-gray-800 overflow-hidden">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="bg-gray-900 text-gray-500 uppercase tracking-wider">
+              <th class="text-left px-3 py-2">Symbol</th>
+              <th class="text-right px-3 py-2">LTP</th>
+              <th class="text-right px-3 py-2">Chg</th>
+              <th class="text-right px-3 py-2">%</th>
+              <th class="text-right px-3 py-2">Vol</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            @if (quotes().length === 0 && !loading()) {
+              <tr>
+                <td colspan="5" class="px-3 py-4 text-center text-gray-700">
+                  No data — check .env credentials
+                </td>
+              </tr>
+            }
+            @for (q of quotes(); track q.symbolToken) {
+              <tr
+                class="hover:bg-gray-900 transition-colors cursor-pointer"
+                [class.bg-gray-900]="selectedSymbol() === q.tradingSymbol.replace('-EQ','')"
+                [class.bg-gray-950]="selectedSymbol() !== q.tradingSymbol.replace('-EQ','')"
+                (click)="selectSymbol(q.tradingSymbol.replace('-EQ',''))"
+              >
+                <td class="px-3 py-2 text-white font-medium">{{ q.tradingSymbol }}</td>
+                <td class="px-3 py-2 text-right text-gray-100 font-mono">{{ q.ltp | number:'1.2-2' }}</td>
+                <td class="px-3 py-2 text-right font-mono" [class]="changeClass(q.ltp - q.close)">
+                  {{ (q.ltp - q.close) | number:'1.2-2' }}
+                </td>
+                <td class="px-3 py-2 text-right font-mono" [class]="changeClass(q.percentchange)">
+                  {{ q.percentchange | number:'1.2-2' }}%
+                </td>
+                <td class="px-3 py-2 text-right text-gray-600 font-mono">{{ q.volume | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bottom: chart -->
+    <div class="flex-1 flex flex-col min-h-0 px-4 pb-4">
+
+      <!-- Chart header: symbol + interval buttons -->
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-white text-sm font-medium">
+          {{ selectedSymbol() }}
+          @if (chartLoading()) {
+            <span class="text-gray-600 text-xs ml-2 animate-pulse">Loading...</span>
+          }
+        </span>
+        <div class="flex gap-1">
+          @for (opt of intervals; track opt.value) {
+            <button
+              (click)="selectInterval(opt)"
+              [class]="opt.value === selectedInterval().value
+                ? 'px-2 py-1 text-xs rounded bg-blue-600 text-white'
+                : 'px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors'"
+            >{{ opt.label }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Chart error -->
+      @if (chartError()) {
+        <div class="px-3 py-2 rounded bg-red-950 border border-red-800 text-red-400 text-xs mb-2">
+          {{ chartError() }}
+        </div>
+      }
+
+      <!-- Chart container -->
+      <div class="flex-1 min-h-0 rounded-lg overflow-hidden border border-gray-800">
+        <app-chart [candles]="candles()" [symbol]="selectedSymbol()" />
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AI Sidebar -->
+  <app-ai-sidebar />
+</div>
